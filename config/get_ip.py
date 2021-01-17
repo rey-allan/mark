@@ -2,16 +2,17 @@
 import network
 import ujson
 
-from fpioa_manager import board_info, fm
+from fpioa_manager import fm
 
 
 # IO map for ESP32 on Maixduino
-fm.register(25, fm.fpioa.GPIOHS10)
-fm.register(8, fm.fpioa.GPIOHS11)
-fm.register(9, fm.fpioa.GPIOHS12)
-fm.register(28, fm.fpioa.GPIOHS13)
-fm.register(26, fm.fpioa.GPIOHS14)
-fm.register(27, fm.fpioa.GPIOHS15)
+fm.register(25, fm.fpioa.GPIOHS25)
+fm.register(8, fm.fpioa.GPIOHS8)
+fm.register(9, fm.fpioa.GPIOHS9)
+fm.register(28, fm.fpioa.SPI1_D0, force=True)
+fm.register(26, fm.fpioa.SPI1_D1, force=True)
+fm.register(27, fm.fpioa.SPI1_SCLK, force=True)
+
 
 def run():
     print('Reading network information')
@@ -19,8 +20,7 @@ def run():
         net = ujson.load(f)
 
     print('Connecting to network:', net['ssid'])
-    nic = network.ESP32_SPI(cs=fm.fpioa.GPIOHS10, rst=fm.fpioa.GPIOHS11, rdy=fm.fpioa.GPIOHS12,
-                            mosi=fm.fpioa.GPIOHS13, miso=fm.fpioa.GPIOHS14, sclk=fm.fpioa.GPIOHS15)
+    nic = network.ESP32_SPI(cs=fm.fpioa.GPIOHS25, rst=fm.fpioa.GPIOHS8, rdy=fm.fpioa.GPIOHS9, spi=1)
     nic.connect(net['ssid'], net['password'])
 
     print('Successfully connected to network', net['ssid'], 'with IP=' + nic.ifconfig()[0])
