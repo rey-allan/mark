@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mark_description</name>
+  <version>0.0.1</version>
+  <description>Unofficial Tinkergen M.A.R.K. URDF description</description>
+
+  <author email="allan_bassail@hotmail.com">Allan Reyes</author>
+  <maintainer email="allan_bassail@hotmail.com">Allan Reyes</maintainer>
+
+  <license>MIT</license>
+
+  <url type="repository">https://github.com/rey-allan/mark</url>
+  <url type="bugtracker">https://github.com/rey-allan/mark/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslaunch</build_depend>
+
+  <export>
+  </export>
+</package>
