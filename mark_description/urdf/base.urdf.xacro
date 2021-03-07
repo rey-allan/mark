@@ -20,10 +20,6 @@
     <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00002"/>
   </xacro:property>
 
-  <material name="grey">
-    <color rgba="0.45 0.45 0.45 1.0"/>
-  </material>
-
   <xacro:macro name="mark_base">
     <!-- Base -->
     <link name="base_link">

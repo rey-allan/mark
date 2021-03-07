@@ -1,8 +1,11 @@
 <?xml version='1.0'?>
 <robot name="mark" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Includes -->
+  <xacro:include filename="$(find mark_description)/urdf/inertial.urdf.xacro" />
+  <xacro:include filename="$(find mark_description)/urdf/materials.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/base.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/wheel.urdf.xacro" />
+  <xacro:include filename="$(find mark_description)/urdf/camera.urdf.xacro" />
 
   <!-- Base/chassis -->
   <xacro:mark_base></xacro:mark_base>
@@ -13,9 +16,12 @@
   <xacro:mark_wheel wheel_prefix="left">
     <origin xyz="0.045 -0.075 -0.005" rpy="0 0 0" />
   </xacro:mark_wheel>
+  <!-- Camera -->
+  <xacro:mark_camera>
+    <origin xyz="0.06 0.0 0.023" rpy="0 0 0" />
+  </xacro:mark_camera>
   <!-- TODO:
-       1. Camera
-       2. Ultrasonic sensor (controlled by arg)
-       3. Gripper (controller by arg)
+       - Ultrasonic sensor (controlled by arg)
+       - Gripper (controller by arg)
   -->
 </robot>

@@ -1,0 +1,13 @@
+<robot>
+  <material name="grey">
+    <color rgba="0.45 0.45 0.45 1.0"/>
+  </material>
+
+  <material name="black">
+    <color rgba="0 0 0 1.0" />
+  </material>
+
+  <material name="blue">
+    <color rgba="0 0 1.0 1.0" />
+  </material>
+</robot>
