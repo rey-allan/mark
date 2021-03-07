@@ -5,7 +5,6 @@
   <xacro:macro name="mark_wheel" params="wheel_prefix *joint_pose">
     <link name="${wheel_prefix}_wheel_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="package://mark_description/meshes/wheel.dae" />
         </geometry>
@@ -19,7 +18,7 @@
       </collision>
       <inertial>
         <mass value="0.5" />
-        <inertia ixx="0.00028" ixy="0.0" ixz="0.0" iyy="0.00028" iyz="0.0" izz="0.00024" />
+        <xacro:cylinder_inertia m="0.5" r="0.031" h="0.062" />
       </inertial>
     </link>
 
@@ -30,5 +29,9 @@
       <!-- Rotation on the y-axis -->
       <axis xyz="0 1 0" />
     </joint>
+
+    <!-- TODO:
+         - Gazebo: controller for wheel differential drive
+    -->
   </xacro:macro>
 </robot>

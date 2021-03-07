@@ -1,54 +1,46 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="mark_base">
-  <!-- MARK dimensions:
-       - Length/Depth: 16.6cm (0.166m)
-       - Width: 12.5cm (0.125m)
-       - Height: 3.6cm (0.036m)
-  -->
-  <xacro:property name="base_size" value="0.166 0.125 0.036" />
-  <!-- MARK weighs around 620g -->
-  <xacro:property name="base_weight" value="0.62" />
-  <!-- Inertia calculated using formulas here:
-       https://en.wikipedia.org/wiki/List_of_moments_of_inertia#List_of_3D_inertia_tensors  -->
-  <xacro:property name="base_inertia">
-    <inertia ixx="0.0015" ixy="0.0" ixz="0.0" iyy="0.0022" iyz="0.0" izz="0.00087"/>
+  <xacro:property name="base_geom">
+    <geometry>
+      <box size="0.166 0.125 0.036" />
+    </geometry>
   </xacro:property>
-  <!-- Caster (i.e. back support) -->
+  <xacro:property name="base_inertia">
+    <inertial>
+      <mass value="0.62" />
+      <xacro:box_inertia m="0.62" d="0.166" w="0.125" h="0.036" />
+    </inertial>
+  </xacro:property>
+
   <xacro:property name="caster_origin" value="-0.073 0 -0.02" />
-  <xacro:property name="caster_radius" value="0.010" />
-  <xacro:property name="caster_weight" value="0.5" />
-  <xacro:property name="caster_inertia">
-    <inertia ixx="0.00002" ixy="0.0" ixz="0.0" iyy="0.00002" iyz="0.0" izz="0.00002"/>
+  <xacro:property name="caster_geom">
+    <sphere radius="0.010" />
+  </xacro:property>
+  <xacro:property name="base_inertia">
+    <inertial>
+      <mass value="0.5" />
+      <xacro:sphere_inertia m="0.5" r="0.010" />
+    </inertial>
   </xacro:property>
 
   <xacro:macro name="mark_base">
     <!-- Base -->
     <link name="base_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <box size="${base_size}" />
-        </geometry>
+        <xacro:insert_block name="base_geom" />
         <material name="grey" />
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <box size="${base_size}"/>
-        </geometry>
+        <xacro:insert_block name="base_geom" />
       </collision>
     </link>
 
     <!-- Inertial link stores the robot's inertial information
          Has to be defined separately because root links can't have intertial information directly -->
     <link name="inertial_link">
-      <inertial>
-        <mass value="${base_weight}"/>
-        <xacro:insert_block name="base_inertia" />
-      </inertial>
+      <xacro:insert_block name="base_inertia" />
     </link>
 
     <joint name="inertial_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="0 0 0" />
       <parent link="base_link" />
       <child link="inertial_link" />
     </joint>
@@ -56,22 +48,13 @@
     <!-- Caster (i.e. back support) -->
     <link name="caster_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <sphere radius="${caster_radius}" />
-        </geometry>
+        <xacro:insert_block name="caster_geom" />
         <material name="grey" />
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <sphere radius="${caster_radius}" />
-        </geometry>
+        <xacro:insert_block name="caster_geom" />
       </collision>
-      <inertial>
-        <mass value="${caster_weight}"/>
-        <xacro:insert_block name="caster_inertia" />
-      </inertial>
+      <xacro:insert_block name="caster_inertial" />
     </link>
 
     <joint name="caster_to_base_joint" type="fixed">
