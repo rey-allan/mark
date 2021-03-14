@@ -1,7 +1,8 @@
 <launch>
   <arg name="gui" default="true" />
+  <arg name="ultrasonic_sensor_enabled" default="true" />
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find mark_description)/urdf/mark.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find mark_description)/urdf/mark.urdf.xacro' ultrasonic_sensor_enabled:=$(arg ultrasonic_sensor_enabled)" />
   <param name="use_gui" value="$(arg gui)" />
 
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />

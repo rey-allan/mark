@@ -1,11 +1,15 @@
 <?xml version='1.0'?>
 <robot name="mark" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Parameters -->
+  <xacro:arg name="ultrasonic_sensor_enabled" default="true" />
+
   <!-- Includes -->
   <xacro:include filename="$(find mark_description)/urdf/inertial.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/materials.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/base.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/wheel.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/camera.urdf.xacro" />
+  <xacro:include filename="$(find mark_description)/urdf/ultrasonic.urdf.xacro" />
 
   <!-- Base/chassis -->
   <xacro:mark_base></xacro:mark_base>
@@ -20,8 +24,13 @@
   <xacro:mark_camera>
     <origin xyz="0.06 0.0 0.023" rpy="0 0 0" />
   </xacro:mark_camera>
+  <!-- Ultrasonic sensor (if requied) -->
+  <xacro:if value="$(arg ultrasonic_sensor_enabled)">
+    <xacro:mark_ultrasonic_sensor>
+      <origin xyz="0.083 0.0 -0.006" rpy="0 0 0" />
+    </xacro:mark_ultrasonic_sensor>
+  </xacro:if>
   <!-- TODO:
-       - Ultrasonic sensor (controlled by arg)
        - Gripper (controller by arg)
   -->
 </robot>

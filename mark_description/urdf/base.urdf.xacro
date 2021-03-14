@@ -17,7 +17,7 @@
       <sphere radius="0.010" />
     </geometry>
   </xacro:property>
-  <xacro:property name="caster_inertial">
+  <xacro:property name="caster_inertia">
     <inertial>
       <mass value="0.5" />
       <xacro:sphere_inertia m="0.5" r="0.010" />
@@ -56,7 +56,7 @@
       <collision>
         <xacro:insert_block name="caster_geom" />
       </collision>
-      <xacro:insert_block name="caster_inertial" />
+      <xacro:insert_block name="caster_inertia" />
     </link>
 
     <joint name="caster_to_base_joint" type="fixed">
