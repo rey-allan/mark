@@ -13,9 +13,11 @@
 
   <xacro:property name="caster_origin" value="-0.073 0 -0.02" />
   <xacro:property name="caster_geom">
-    <sphere radius="0.010" />
+    <geometry>
+      <sphere radius="0.010" />
+    </geometry>
   </xacro:property>
-  <xacro:property name="base_inertia">
+  <xacro:property name="caster_inertial">
     <inertial>
       <mass value="0.5" />
       <xacro:sphere_inertia m="0.5" r="0.010" />
