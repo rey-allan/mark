@@ -2,6 +2,7 @@
 <robot name="mark" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Parameters -->
   <xacro:arg name="ultrasonic_sensor_enabled" default="true" />
+  <xacro:arg name="gripper_enabled" default="true" />
 
   <!-- Includes -->
   <xacro:include filename="$(find mark_description)/urdf/inertial.urdf.xacro" />
@@ -10,9 +11,11 @@
   <xacro:include filename="$(find mark_description)/urdf/wheel.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/camera.urdf.xacro" />
   <xacro:include filename="$(find mark_description)/urdf/ultrasonic.urdf.xacro" />
+  <xacro:include filename="$(find mark_description)/urdf/gripper.urdf.xacro" />
 
   <!-- Base/chassis -->
   <xacro:mark_base></xacro:mark_base>
+
   <!-- Wheels -->
   <xacro:mark_wheel wheel_prefix="right">
     <origin xyz="0.045 0.075 -0.005" rpy="0 0 0" />
@@ -20,17 +23,32 @@
   <xacro:mark_wheel wheel_prefix="left">
     <origin xyz="0.045 -0.075 -0.005" rpy="0 0 0" />
   </xacro:mark_wheel>
+
   <!-- Camera -->
   <xacro:mark_camera>
     <origin xyz="0.06 0.0 0.023" rpy="0 0 0" />
   </xacro:mark_camera>
+
   <!-- Ultrasonic sensor (if requied) -->
   <xacro:if value="$(arg ultrasonic_sensor_enabled)">
-    <xacro:mark_ultrasonic_sensor>
-      <origin xyz="0.083 0.0 -0.006" rpy="0 0 0" />
-    </xacro:mark_ultrasonic_sensor>
+    <!-- If the gripper is also enabled then place the ultrasonic sensor on the base of the gripper -->
+    <xacro:if value="$(arg gripper_enabled)">
+      <xacro:mark_ultrasonic_sensor parent="gripper_base_link">
+        <origin xyz="0.069 0.0 0.016" rpy="0 0 0" />
+      </xacro:mark_ultrasonic_sensor>
+    </xacro:if>
+    <!-- If the gripper is not enabled then place the ultrasonic sensor on the base of the robot -->
+    <xacro:unless value="$(arg gripper_enabled)">
+      <xacro:mark_ultrasonic_sensor parent="base_link">
+        <origin xyz="0.084 0.0 -0.003" rpy="0 0 0" />
+      </xacro:mark_ultrasonic_sensor>
+    </xacro:unless>
   </xacro:if>
-  <!-- TODO:
-       - Gripper (controller by arg)
-  -->
+
+  <!-- Gripper (if required) -->
+  <xacro:if value="$(arg gripper_enabled)">
+    <xacro:mark_gripper>
+      <origin xyz="0.03 0.0 -0.018" rpy="0 0 0" />
+    </xacro:mark_gripper>
+  </xacro:if>
 </robot>

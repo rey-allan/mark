@@ -1,7 +1,7 @@
-<robot xmlns:xacro="http://ros.org/wiki/xacro" name="mark_wheel">
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="mark_ultrasonic">
   <xacro:property name="ultrasonic_sensor_base_geom">
     <geometry>
-      <box size="0.001 0.047 0.023" />
+      <box size="0.001 0.047 0.03" />
     </geometry>
   </xacro:property>
   <xacro:property name="ultrasonic_sensor_base_inertia">
@@ -18,11 +18,11 @@
   </xacro:property>
   <xacro:property name="ultrasonic_sensor_right_joint_pose">
     <!-- Rotate 90 degrees (in radians) -->
-    <origin xyz="0.008 0.012 0" rpy="0 1.560795 0" />
+    <origin xyz="0.0076 0.012 -0.005" rpy="0 1.560795 0" />
   </xacro:property>
   <xacro:property name="ultrasonic_sensor_left_joint_pose">
     <!-- Rotate 90 degrees (in radians) -->
-    <origin xyz="0.008 -0.012 0" rpy="0 1.560795 0" />
+    <origin xyz="0.0076 -0.012 -0.005" rpy="0 1.560795 0" />
   </xacro:property>
   <xacro:property name="ultrasonic_sensor_inertia">
     <inertial>
@@ -52,7 +52,7 @@
   </xacro:macro>
 
   <!-- Full ultrasonic sensor macro-->
-  <xacro:macro name="mark_ultrasonic_sensor" params="*ultrasonic_sensor_base_joint_pose">
+  <xacro:macro name="mark_ultrasonic_sensor" params="parent *ultrasonic_sensor_base_joint_pose">
     <link name="ultrasonic_sensor_base_link">
       <visual>
         <xacro:insert_block name="ultrasonic_sensor_base_geom" />
@@ -64,8 +64,8 @@
       <xacro:insert_block name="ultrasonic_sensor_base_inertia" />
     </link>
 
-    <joint name="ultrasonic_sensor_base_to_robot_base_link" type="fixed">
-      <parent link="base_link" />
+    <joint name="ultrasonic_sensor_base_to_parent_link" type="fixed">
+      <parent link="${parent}" />
       <child link="ultrasonic_sensor_base_link" />
       <xacro:insert_block name="ultrasonic_sensor_base_joint_pose" />
     </joint>
