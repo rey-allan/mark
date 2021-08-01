@@ -24,7 +24,13 @@ First run the image mounting the `mark_description` directory.
 docker run -it --rm -v /path/to/mark_description:/catkin_ws/src/mark_description mark:ros /bin/bash
 ```
 
-Then convert the `xacro` files into a single `urdf` file.
+Then build the `mark_description` package.
+
+```
+catkin build && source devel/setup.bash
+```
+
+Finally, convert the `xacro` files into a single `urdf` file.
 
 ```
 rosrun xacro xacro -o src/mark_description/urdf/mark.urdf src/mark_description/urdf/mark.urdf.xacro
