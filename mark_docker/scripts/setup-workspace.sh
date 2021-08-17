@@ -3,19 +3,19 @@
 # Source the environment
 source /opt/ros/melodic/setup.bash
 
-# Create workspace:
+# Create workspace
 mkdir -p ~/catkin_ws/src
 
 cd ~/catkin_ws
 catkin init
 
-# Build the workspace:
+# Build the workspace
 cd ~/catkin_ws/
 catkin build
 
-# Source your workspace:
+# Source the workspace
 cd ~/catkin_ws/
 source devel/setup.bash
 
-# Add your workspace to the .bashrc file such that it is sourced every time you start a new shell (terminal)
+# Add the workspace to the .bashrc file
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc

@@ -6,7 +6,7 @@ RUN sudo apt-get update && sudo apt-get install -y vim python-pip python-catkin-
 
 ENV ROS_WORKSPACE=/catkin_ws
 
-COPY ./ros_docker/set-up-workspace /setup.sh
-RUN chmod +x /setup.sh && /setup.sh && rm /setup.sh
+COPY ./mark_docker/scripts ${ROS_WORKSPACE}/scripts
+RUN ${ROS_WORKSPACE}/scripts/setup-workspace.sh
 
 WORKDIR $ROS_WORKSPACE
