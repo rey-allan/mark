@@ -6,14 +6,9 @@
   </xacro:property>
   <xacro:property name="gripper_base_collision">
     <geometry>
-      <box size="0.015 0.073 0.035" />
+      <box size="0.015 0.073 0.03" />
     </geometry>
-  </xacro:property>
-  <xacro:property name="gripper_base_inertia">
-    <inertial>
-      <mass value="0.001" />
-      <xacro:box_inertia m="0.001" d="0.015" w="0.073" h="0.035" />
-    </inertial>
+    <origin xyz="0.0613 0 0.016" rpy="0 0 0" />
   </xacro:property>
 
   <xacro:property name="gripper_arm_collision">
@@ -24,6 +19,9 @@
   <xacro:property name="gripper_arm_a_link_pose">
     <origin xyz="0.015 0 0" rpy="0 0 0" />
   </xacro:property>
+  <xacro:property name="gripper_arm_a_collision_pose">
+    <origin xyz="0.031 0 0" rpy="0 0 0" />
+  </xacro:property>
   <xacro:property name="gripper_arm_b_link_pose">
     <origin xyz="0.031 0 0" rpy="0 0 0" />
   </xacro:property>
@@ -33,15 +31,9 @@
   <xacro:property name="gripper_arm_b_joint_pose">
     <origin xyz="0.06 0.01 0" rpy="0 0 0" />
   </xacro:property>
-  <xacro:property name="gripper_arm_inertia">
-    <inertial>
-      <mass value="0.001" />
-      <xacro:box_inertia m="0.001" d="0.07" w="0.01" h="0.01" />
-    </inertial>
-  </xacro:property>
 
   <!-- Macro for gripper arms -->
-  <xacro:macro name="gripper_arm" params="prefix mimic_joint:='none' *link_pose *joint_pose">
+  <xacro:macro name="gripper_arm" params="prefix anchor_rotation *link_pose *collision_pose *joint_pose">
     <link name="gripper_arm_${prefix}_link">
       <visual>
         <xacro:insert_block name="link_pose" />
@@ -50,10 +42,9 @@
         </geometry>
       </visual>
       <collision>
-        <xacro:insert_block name="link_pose" />
+        <xacro:insert_block name="collision_pose" />
         <xacro:insert_block name="gripper_arm_collision" />
       </collision>
-      <xacro:insert_block name="gripper_arm_inertia" />
     </link>
 
     <joint name="gripper_arm_${prefix}_to_gripper_base_joint" type="revolute">
@@ -61,15 +52,9 @@
       <child link="gripper_arm_${prefix}_link" />
       <xacro:insert_block name="joint_pose" />
       <!-- Rotation on the z-axis -->
-      <axis xyz="0 0 1" />
+      <axis xyz="0 0 ${anchor_rotation}" />
       <!-- -90 to ~5 degrees (radians) so that the two arms can meet -->
       <limit lower="-1.560795" upper="0.09" effort="1.0" velocity="1.0" />
-      <xacro:if value="${mimic_joint != 'none'}" >
-        <!-- We use a multiplier of -1 to make the joints move opposite of each other
-             This allows both arms to open and close correctly
-        -->
-        <mimic joint="${mimic_joint}" multiplier="-1.0"/>
-      </xacro:if>
     </joint>
   </xacro:macro>
 
@@ -82,7 +67,6 @@
       <collision>
         <xacro:insert_block name="gripper_base_collision" />
       </collision>
-      <xacro:insert_block name="gripper_base_inertia" />
     </link>
 
     <joint name="gripper_base_to_robot_base_link" type="fixed">
@@ -91,18 +75,30 @@
       <xacro:insert_block name="gripper_base_joint_pose" />
     </joint>
 
-    <!-- Two gripper arms -->
-    <xacro:gripper_arm prefix="a">
+    <!-- Two gripper arms
+         We need a separate pose for the collision because if we use the link pose,
+         the collision mesh ends up not aligning properly; not sure why though.
+         For the gripper b side we can use the same pose as the link because
+         it seems the 3D model matches it perfectly -->
+    <xacro:gripper_arm prefix="a" anchor_rotation="1">
       <xacro:insert_block name="gripper_arm_a_link_pose" />
+      <xacro:insert_block name="gripper_arm_a_collision_pose" />
       <xacro:insert_block name="gripper_arm_a_joint_pose" />
     </xacro:gripper_arm>
-    <xacro:gripper_arm prefix="b" mimic_joint="gripper_arm_a_to_gripper_base_joint">
+    <xacro:gripper_arm prefix="b" anchor_rotation="-1">
+      <xacro:insert_block name="gripper_arm_b_link_pose" />
       <xacro:insert_block name="gripper_arm_b_link_pose" />
       <xacro:insert_block name="gripper_arm_b_joint_pose" />
     </xacro:gripper_arm>
 
-    <!-- TODO:
-         - Gazebo: controller for gripper arm servo
-    -->
+    <!--Disable collisions between the grippers, the base and the ultrasonic sensor
+        This allows the grippers to open and close smoothly
+        See: https://github.com/Unity-Technologies/Unity-Robotics-Hub/blob/main/tutorials/urdf_importer/urdf_appendix.md#disable-collision-support -->
+    <disable_collision link1="gripper_arm_a_link" link2="gripper_base_link"></disable_collision>
+    <disable_collision link1="gripper_arm_b_link" link2="gripper_base_link"></disable_collision>
+    <disable_collision link1="gripper_arm_a_link" link2="ultrasonic_sensor_base_link"></disable_collision>
+    <disable_collision link1="gripper_arm_b_link" link2="ultrasonic_sensor_base_link"></disable_collision>
+    <disable_collision link1="gripper_arm_a_link" link2="ultrasonic_sensor_left_link"></disable_collision>
+    <disable_collision link1="gripper_arm_b_link" link2="ultrasonic_sensor_right_link"></disable_collision>
   </xacro:macro>
 </robot>

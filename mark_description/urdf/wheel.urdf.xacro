@@ -13,13 +13,9 @@
         <!-- The cylinder for the collision needs to be rotated 90 degrees (in radians) -->
         <origin xyz="0 0 0" rpy="1.560795 0 0" />
         <geometry>
-          <cylinder length="0.062" radius="0.031" />
+          <cylinder length="0.027" radius="0.031" />
         </geometry>
       </collision>
-      <inertial>
-        <mass value="0.5" />
-        <xacro:cylinder_inertia m="0.5" r="0.031" h="0.062" />
-      </inertial>
     </link>
 
     <joint name="joint_${wheel_prefix}_wheel" type="continuous">
@@ -29,9 +25,5 @@
       <!-- Rotation on the y-axis -->
       <axis xyz="0 1 0" />
     </joint>
-
-    <!-- TODO:
-         - Gazebo: controller for wheel differential drive
-    -->
   </xacro:macro>
 </robot>

@@ -4,12 +4,6 @@
       <cylinder length="0.01" radius="0.0225" />
     </geometry>
   </xacro:property>
-  <xacro:property name="camera_pan_support_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:cylinder_inertia m="0.005" r="0.0225" h="0.01" />
-    </inertial>
-  </xacro:property>
 
   <xacro:property name="camera_tilt_support_geom">
     <geometry>
@@ -18,12 +12,6 @@
   </xacro:property>
   <xacro:property name="camera_tilt_support_joint_pose">
     <origin xyz="0.005 0 0.015" rpy="0 0 0" />
-  </xacro:property>
-  <xacro:property name="camera_tilt_support_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:box_inertia m="0.005" d="0.035" w="0.025" h="0.02" />
-    </inertial>
   </xacro:property>
 
   <xacro:property name="camera_lateral_support_geom">
@@ -35,19 +23,13 @@
     <origin xyz="0 0 0.021" rpy="0 0 0" />
   </xacro:property>
   <xacro:property name="camera_left_lateral_support_link_pose">
-    <origin xyz="0 0 0.021" rpy="0 0 0" />
+    <origin xyz="-0.009 0 -0.0155" rpy="0 0 0" />
   </xacro:property>
   <xacro:property name="camera_right_lateral_support_joint_pose">
     <origin xyz="0.009 0.013 0" rpy="0 0 0" />
   </xacro:property>
   <xacro:property name="camera_left_lateral_support_joint_pose">
     <origin xyz="0.009 -0.013 0" rpy="0 0 0" />
-  </xacro:property>
-  <xacro:property name="camera_lateral_support_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:box_inertia m="0.005" d="0.012" w="0.001" h="0.057" />
-    </inertial>
   </xacro:property>
 
   <xacro:property name="camera_lens_support_geom">
@@ -57,12 +39,6 @@
   </xacro:property>
   <xacro:property name="camera_lens_support_joint_pose">
     <origin xyz="0 -0.013 0.0365" rpy="0 0 0" />
-  </xacro:property>
-  <xacro:property name="camera_lens_support_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:box_inertia m="0.005" d="0.012" w="0.025" h="0.026" />
-    </inertial>
   </xacro:property>
 
   <xacro:property name="camera_lens_geom">
@@ -74,41 +50,6 @@
     <!-- Rotate 90 degrees (in radians) -->
     <origin xyz="0.012 0 0.003" rpy="0 1.560795 0" />
   </xacro:property>
-  <xacro:property name="camera_lens_inertia">
-    <inertial>
-      <mass value="0.0025" />
-      <xacro:cylinder_inertia m="0.0025" r="0.006" h="0.012"  />
-    </inertial>
-  </xacro:property>
-
-  <!-- Macro for lateral support for holding the lens support -->
-  <xacro:macro name="camera_lateral_support" params="prefix mimic_joint:='none' *link_pose *joint_pose">
-    <link name="camera_${prefix}_lateral_support_link">
-      <visual>
-        <xacro:insert_block name="link_pose" />
-        <xacro:insert_block name="camera_lateral_support_geom" />
-        <material name="black" />
-      </visual>
-      <collision>
-        <xacro:insert_block name="link_pose" />
-        <xacro:insert_block name="camera_lateral_support_geom" />
-      </collision>
-      <xacro:insert_block name="camera_lateral_support_inertia" />
-    </link>
-
-    <joint name="camera_${prefix}_lateral_support_to_tilt_support_joint" type="revolute">
-      <parent link="camera_tilt_support_link" />
-      <child link="camera_${prefix}_lateral_support_link" />
-      <xacro:insert_block name="joint_pose" />
-      <!-- Rotation on the y-axis (tilt) -->
-      <axis xyz="0 1 0" />
-      <!-- -75 to 90 degrees -->
-      <limit lower="-1.309" upper="1.560795" effort="1.0" velocity="1.0" />
-      <xacro:if value="${mimic_joint != 'none'}" >
-        <mimic joint="${mimic_joint}" />
-      </xacro:if>
-    </joint>
-  </xacro:macro>
 
   <!-- Full camera macro -->
   <xacro:macro name="mark_camera" params="*main_camera_joint_pose">
@@ -121,7 +62,6 @@
       <collision>
         <xacro:insert_block name="camera_pan_support_geom" />
       </collision>
-      <xacro:insert_block name="camera_pan_support_inertia" />
     </link>
 
     <joint name="camera_pan_support_to_base_joint" type="revolute">
@@ -143,7 +83,6 @@
       <collision>
         <xacro:insert_block name="camera_tilt_support_geom" />
       </collision>
-      <xacro:insert_block name="camera_tilt_support_inertia" />
     </link>
 
     <joint name="camera_tilt_support_to_pan_support_joint" type="fixed">
@@ -152,15 +91,28 @@
       <xacro:insert_block name="camera_tilt_support_joint_pose" />
     </joint>
 
-    <!-- Lateral supports for lens that provide tilting -->
-    <xacro:camera_lateral_support prefix="right">
-      <xacro:insert_block name="camera_right_lateral_support_link_pose" />
+    <!-- Lateral support for lens that provide tilting (only the right will move) -->
+    <link name="camera_right_lateral_support_link">
+      <visual>
+        <xacro:insert_block name="camera_right_lateral_support_link_pose" />
+        <xacro:insert_block name="camera_lateral_support_geom" />
+        <material name="black" />
+      </visual>
+      <collision>
+        <xacro:insert_block name="camera_right_lateral_support_link_pose" />
+        <xacro:insert_block name="camera_lateral_support_geom" />
+      </collision>
+    </link>
+
+    <joint name="camera_right_lateral_support_to_tilt_support_joint" type="revolute">
+      <parent link="camera_tilt_support_link" />
+      <child link="camera_right_lateral_support_link" />
       <xacro:insert_block name="camera_right_lateral_support_joint_pose" />
-    </xacro:camera_lateral_support>
-    <xacro:camera_lateral_support prefix="left" mimic_joint="camera_right_lateral_support_to_tilt_support_joint">
-      <xacro:insert_block name="camera_left_lateral_support_link_pose" />
-      <xacro:insert_block name="camera_left_lateral_support_joint_pose" />
-    </xacro:camera_lateral_support>
+      <!-- Rotation on the y-axis (tilt) -->
+      <axis xyz="0 1 0" />
+      <!-- -75 to 90 degrees -->
+      <limit lower="-1.309" upper="1.560795" effort="1.0" velocity="1.0" />
+    </joint>
 
     <!-- Lens support -->
     <link name="camera_lens_support_link">
@@ -171,13 +123,35 @@
       <collision>
         <xacro:insert_block name="camera_lens_support_geom" />
       </collision>
-      <xacro:insert_block name="camera_lens_support_inertia" />
     </link>
 
     <joint name="camera_lens_support_to_lateral_support_joint" type="fixed">
       <parent link="camera_right_lateral_support_link" />
       <child link="camera_lens_support_link" />
       <xacro:insert_block name="camera_lens_support_joint_pose" />
+    </joint>
+
+    <!-- Left lateral support for lens that does not move on its own
+         Movement is controlled by thr right lateral support
+         We add this so that it matches the visual design of the robot -->
+    <link name="camera_left_lateral_support_link">
+      <visual>
+        <xacro:insert_block name="camera_left_lateral_support_link_pose" />
+        <xacro:insert_block name="camera_lateral_support_geom" />
+        <material name="black" />
+      </visual>
+      <collision>
+        <xacro:insert_block name="camera_left_lateral_support_link_pose" />
+        <xacro:insert_block name="camera_lateral_support_geom" />
+      </collision>
+    </link>
+
+    <!-- Join the lateral support with a fixed joint so that it moves with the whole
+         camera lens when the right support moves -->
+    <joint name="camera_left_lateral_support_to_lens_support_joint" type="fixed">
+      <parent link="camera_lens_support_link" />
+      <child link="camera_left_lateral_support_link" />
+      <xacro:insert_block name="camera_left_lateral_support_joint_pose" />
     </joint>
 
     <!-- Camera lens -->
@@ -189,7 +163,6 @@
       <collision>
         <xacro:insert_block name="camera_lens_geom" />
       </collision>
-      <xacro:insert_block name="camera_lens_inertia" />
     </link>
 
     <joint name="camera_lens_to_lens_support_joint" type="fixed">
@@ -197,11 +170,5 @@
       <child link="camera_lens_link" />
       <xacro:insert_block name="camera_lens_joint_pose" />
     </joint>
-
-    <!-- TODO:
-         - Gazebo:
-           - Camera sensor
-           - Controller for pan and tilt servos
-    -->
   </xacro:macro>
 </robot>

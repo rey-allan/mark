@@ -4,12 +4,6 @@
       <box size="0.166 0.125 0.036" />
     </geometry>
   </xacro:property>
-  <xacro:property name="base_inertia">
-    <inertial>
-      <mass value="0.62" />
-      <xacro:box_inertia m="0.62" d="0.166" w="0.125" h="0.036" />
-    </inertial>
-  </xacro:property>
 
   <xacro:property name="caster_origin" value="-0.073 0 -0.02" />
   <xacro:property name="caster_geom">
@@ -17,14 +11,10 @@
       <sphere radius="0.010" />
     </geometry>
   </xacro:property>
-  <xacro:property name="caster_inertia">
-    <inertial>
-      <mass value="0.5" />
-      <xacro:sphere_inertia m="0.5" r="0.010" />
-    </inertial>
-  </xacro:property>
 
   <xacro:macro name="mark_base">
+    <link name="world" />
+
     <!-- Base -->
     <link name="base_link">
       <visual>
@@ -36,15 +26,12 @@
       </collision>
     </link>
 
-    <!-- Inertial link stores the robot's inertial information
-         Has to be defined separately because root links can't have intertial information directly -->
-    <link name="inertial_link">
-      <xacro:insert_block name="base_inertia" />
-    </link>
-
-    <joint name="inertial_joint" type="fixed">
-      <parent link="base_link" />
-      <child link="inertial_link" />
+    <!-- Join the base to the "world" which will act as the unifying link of the whole robot
+         This is needed for the robot to be imported properly in Unity -->
+    <joint name="joint_world" type="fixed">
+        <parent link="world" />
+        <child link="base_link" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
     </joint>
 
     <!-- Caster (i.e. back support) -->
@@ -56,7 +43,6 @@
       <collision>
         <xacro:insert_block name="caster_geom" />
       </collision>
-      <xacro:insert_block name="caster_inertia" />
     </link>
 
     <joint name="caster_to_base_joint" type="fixed">

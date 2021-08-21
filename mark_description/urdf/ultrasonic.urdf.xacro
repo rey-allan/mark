@@ -4,12 +4,6 @@
       <box size="0.001 0.047 0.03" />
     </geometry>
   </xacro:property>
-  <xacro:property name="ultrasonic_sensor_base_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:box_inertia m="0.005" d="0.001" w="0.045" h="0.023" />
-    </inertial>
-  </xacro:property>
 
   <xacro:property name="ultrasonic_sensor_geom">
     <geometry>
@@ -24,12 +18,6 @@
     <!-- Rotate 90 degrees (in radians) -->
     <origin xyz="0.0076 -0.012 -0.005" rpy="0 1.560795 0" />
   </xacro:property>
-  <xacro:property name="ultrasonic_sensor_inertia">
-    <inertial>
-      <mass value="0.005" />
-      <xacro:cylinder_inertia m="0.005" r="0.0075" h="0.013" />
-    </inertial>
-  </xacro:property>
 
   <!-- Macro for lateral support for holding the lens support -->
   <xacro:macro name="ultrasonic_sensor" params="prefix *joint_pose">
@@ -41,7 +29,6 @@
       <collision>
         <xacro:insert_block name="ultrasonic_sensor_geom" />
       </collision>
-      <xacro:insert_block name="ultrasonic_sensor_inertia" />
     </link>
 
     <joint name="ultrasonic_sensor_${prefix}_to_sensor_base_joint" type="fixed">
@@ -61,7 +48,6 @@
       <collision>
         <xacro:insert_block name="ultrasonic_sensor_base_geom" />
       </collision>
-      <xacro:insert_block name="ultrasonic_sensor_base_inertia" />
     </link>
 
     <joint name="ultrasonic_sensor_base_to_parent_link" type="fixed">
@@ -77,9 +63,5 @@
     <xacro:ultrasonic_sensor prefix="left">
       <xacro:insert_block name="ultrasonic_sensor_left_joint_pose" />
     </xacro:ultrasonic_sensor>
-
-    <!-- TODO:
-         - Gazebo: ultrasonic sensors
-    -->
   </xacro:macro>
 </robot>
