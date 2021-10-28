@@ -5,7 +5,7 @@
     </geometry>
   </xacro:property>
 
-  <xacro:property name="caster_origin" value="-0.073 0 -0.02" />
+  <xacro:property name="caster_origin" value="-0.073 0 -0.025" />
   <xacro:property name="caster_geom">
     <geometry>
       <sphere radius="0.010" />
