@@ -2,3 +2,12 @@
 **/.vscode/
 config/network.json
 mark_description/urdf/mark.urdf
+mark_unity/[Ll]ibrary/
+mark_unity/[Tt]emp/
+mark_unity/[Oo]bj/
+mark_unity/[Bb]uild/
+mark_unity/[Bb]uilds/
+mark_unity/[Ll]ogs/
+mark_unity/[Uu]ser[Ss]ettings/
+mark_unity/**/*.csproj
+mark_unity/**/*.sln
