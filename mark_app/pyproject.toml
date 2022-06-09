@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "mark_app"
+version = "0.0.1"
+description = "An app for controlling and managing M.A.R.K."
+authors = ["Allan Reyes <allan_bassail@hotmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7.2"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+isort = "^5.10.1"
+pylint = "^2.14.1"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.pylint.format]
+max-line-length=120
+
+[tool.pylint.messages_control]
+disable=["missing-module-docstring", "too-few-public-methods", "no-self-use", "too-many-arguments", "too-many-locals", "fixme"]
+
+[tool.pylint.typecheck]
+generated-members=["numpy.*", "torch.*"]
+extension-pkg-allow-list=["math", "pydantic"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
