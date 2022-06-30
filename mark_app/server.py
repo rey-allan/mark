@@ -2,11 +2,13 @@ import logging
 import queue
 import socket
 import threading
+from typing import Any, ByteString, Optional
 
 
 class MESSAGE_TYPE:
     CONNECTED = "CONNECTED"
     DISCONNECTED = "DISCONNECTED"
+    CAMERA_FEED_RECEIVED = "CAMERA_FEED_RECEIVED"
 
 
 class Server(threading.Thread):
@@ -66,17 +68,53 @@ class _ServerSocket(threading.Thread):
         self._sc = sc
         self._message_queue = message_queue
 
-    def run(self):
+    def run(self) -> None:
+        is_image_start = False
+        image = None
+
         while True:
-            # TODO: Handle camera feed from M.A.R.K.
-            bytes = self._sc.recv(1024)
+            bytes = self._sc.recv(2048)
             if bytes:
                 logging.info("Received %s bytes from M.A.R.K.", len(bytes))
+
+                # Handling of camera feed modified from:
+                # https://github.com/codeandrobots/codeandrobots-app/blob/master/App/Services/Socket/index.js#L185
+
+                # Look for the starting bytes of a JPEG
+                start_index = _find_bytes(bytes, b"\xFF\xD8")
+
+                if start_index is not None:
+                    is_image_start = True
+                    image = bytes[start_index:]
+                    continue
+
+                # Are we still reading an image?
+                if is_image_start:
+                    # Look for the ending bytes of a JPEG to determine if we are done reading the image
+                    end_index = _find_bytes(bytes, b"\xFF\xD9")
+
+                    if end_index is not None:
+                        is_image_start = False
+                        # Finalize reconstructing the image bytes
+                        # We add a 2 to actually include the ending bytes
+                        image += bytes[: end_index + 2]
+                        # Send the image to the message queue
+                        self._message_queue.put((MESSAGE_TYPE.CAMERA_FEED_RECEIVED, image))
+                    else:
+                        # Continue reconstructing the image bytes
+                        image += bytes
             else:
                 logging.info("M.A.R.K. disconnected.")
                 self._sc.close()
                 self._message_queue.put((MESSAGE_TYPE.DISCONNECTED, None))
                 break
 
-    def close(self):
+    def close(self) -> None:
         self._sc.close()
+
+
+def _find_bytes(bytes: bytearray, to_find: ByteString) -> Optional[int]:
+    try:
+        return bytes.index(to_find)
+    except ValueError:
+        return None
