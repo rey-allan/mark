@@ -8,6 +8,7 @@ authors = ["Allan Reyes <allan_bassail@hotmail.com>"]
 python = ">=3.7.2,<3.11"
 Pillow = "^9.1.1"
 opencv-python = "^4.6.0"
+matplotlib = "^3.5.2"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

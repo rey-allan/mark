@@ -2,26 +2,23 @@ import logging
 import queue
 import socket
 import threading
-from typing import Any, ByteString, Optional
+from typing import ByteString, Optional
 
-
-class MESSAGE_TYPE:
-    CONNECTED = "CONNECTED"
-    DISCONNECTED = "DISCONNECTED"
-    CAMERA_FEED_RECEIVED = "CAMERA_FEED_RECEIVED"
+from common import MESSAGE_TYPE
 
 
 class Server(threading.Thread):
-    def __init__(self, host: str, port: int, message_queue: queue.Queue) -> None:
-        """A server that listens for messages from M.A.R.K.
+    """A server that listens for messages from M.A.R.K.
 
-        :param host: The hostname of the server
-        :type host: str
-        :param port: The port of the server
-        :type port: int
-        :param message_queue: The queue to put messages from M.A.R.K.
-        :type message_queue: queue.Queue
-        """
+    :param host: The hostname of the server
+    :type host: str
+    :param port: The port of the server
+    :type port: int
+    :param message_queue: The queue to put messages from M.A.R.K.
+    :type message_queue: queue.Queue
+    """
+
+    def __init__(self, host: str, port: int, message_queue: queue.Queue) -> None:
         super().__init__()
 
         self._host = host
@@ -55,14 +52,15 @@ class Server(threading.Thread):
 
 
 class _ServerSocket(threading.Thread):
-    def __init__(self, sc: socket, message_queue: queue.Queue) -> None:
-        """A socket that supports the asynchronous communication with M.A.R.K.
+    """A socket that supports the asynchronous communication with M.A.R.K.
 
-        :param sc: The socket connection to M.A.R.K.
-        :type sc: socket
-        :param message_queue: The queue to put messages from M.A.R.K.
-        :type message_queue: queue.Queue
-        """
+    :param sc: The socket connection to M.A.R.K.
+    :type sc: socket
+    :param message_queue: The queue to put messages from M.A.R.K.
+    :type message_queue: queue.Queue
+    """
+
+    def __init__(self, sc: socket, message_queue: queue.Queue) -> None:
         super().__init__()
 
         self._sc = sc

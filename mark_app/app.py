@@ -6,11 +6,16 @@ import sys
 # For buttons to render properly in MacOS, we need to import `ttk`
 # See: https://stackoverflow.com/q/59006014
 from tkinter import Canvas, Frame, Label, Tk, messagebox, ttk
-from typing import Any
+from typing import Any, List
 
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 from PIL import ImageTk
 
-from server import MESSAGE_TYPE, Server
+from common import MESSAGE_TYPE
+from controller import KeyboardController
+from server import Server
 
 
 class App:
@@ -21,30 +26,18 @@ class App:
         self._root = root
         self._root.columnconfigure(0, weight=1)
 
-        # Connection status
-        self._status_frame = Frame(self._root)
-        self._status_frame.grid(row=0, column=0)
-        self._status_fixed_label = Label(self._status_frame, text="Status: ", font="Roboto 14 bold")
-        self._status_fixed_label.grid(row=0, column=0)
-        self._status_label = Label(self._status_frame, text="Offline", fg="red", font="Roboto 14 bold")
-        self._status_label.grid(row=0, column=1)
+        self._build_connection_status_frame()
 
-        # Camera feed
-        self._camera_label = Label(self._root, text="Camera Feed", font="Roboto 14 bold")
-        self._camera_label.grid(row=1, column=0, sticky="w", padx=250)
-        self._camera_feed = Canvas(self._root, width=500, height=450)
-        self._camera_feed.grid(row=2, column=0, sticky="w", padx=50, pady=10)
-        # Initialize with a placeholder image while we wait to receive images from M.A.R.K.
-        # We need to do this double assignment to prevent the image to be garbage collected
-        # See: https://stackoverflow.com/questions/26479728/tkinter-canvas-image-not-displaying
-        self._root.placeholder_image = placeholder_image = ImageTk.PhotoImage(file="img/placeholder.png")
-        self._camera_feed_image = self._camera_feed.create_image(0, 0, anchor="nw", image=placeholder_image)
+        self._feed_frame = Frame(self._root)
+        self._feed_frame.grid(row=1, column=0)
 
-        # Start the server
-        self._server = Server(host="localhost", port=1060, message_queue=self._queue)
-        # We set the server as a daemon so that it can be killed when the app is closed
-        self._server.daemon = True
-        self._server.start()
+        self._build_camera_feed_panel()
+
+        self._plot_queue = _PlotQueue(max_size=50)
+        self._build_controller_feed_panel()
+
+        self._start_server()
+        self._start_controller()
 
         # Update the UI based on events from M.A.R.K.
         self._update()
@@ -52,6 +45,46 @@ class App:
     def close(self):
         self._server.close()
         self._root.destroy()
+
+    def _build_connection_status_frame(self):
+        self._status_frame = Frame(self._root)
+        self._status_frame.grid(row=0, column=0)
+        self._status_fixed_label = Label(self._status_frame, text="Status: ", font="Roboto 14 bold")
+        self._status_fixed_label.grid(row=0, column=0)
+        self._status_label = Label(self._status_frame, text="Offline", fg="red", font="Roboto 14 bold")
+        self._status_label.grid(row=0, column=1)
+
+    def _build_camera_feed_panel(self):
+        self._camera_label = Label(self._feed_frame, text="Camera Feed", font="Roboto 14 bold")
+        self._camera_label.grid(row=0, column=0)
+        self._camera_feed = Canvas(self._feed_frame, width=500, height=450)
+        self._camera_feed.grid(row=1, column=0, padx=50, pady=10)
+        # Initialize with a placeholder image while we wait to receive images from M.A.R.K.
+        # We need to do this double assignment to prevent the image to be garbage collected
+        # See: https://stackoverflow.com/questions/26479728/tkinter-canvas-image-not-displaying
+        self._root.placeholder_image = placeholder_image = ImageTk.PhotoImage(file="img/placeholder.png")
+        self._camera_feed_image = self._camera_feed.create_image(0, 0, anchor="nw", image=placeholder_image)
+
+    def _build_controller_feed_panel(self):
+        self._controller_label = Label(self._feed_frame, text="Controller Feed", font="Roboto 14 bold")
+        self._controller_label.grid(row=0, column=1)
+        # 500 x 450 (width x height) same as the camera feed
+        self._controller_figure = Figure(figsize=(5, 4.5), dpi=100)
+        self._controller_plot = self._controller_figure.add_subplot(111)
+        self._controller_canvas = FigureCanvasTkAgg(self._controller_figure, self._feed_frame)
+        self._controller_canvas.get_tk_widget().grid(row=1, column=1, padx=50, pady=10)
+
+    def _start_server(self):
+        self._server = Server(host="localhost", port=1060, message_queue=self._queue)
+        # We set the server as a daemon so that it can be killed when the app is closed
+        self._server.daemon = True
+        self._server.start()
+
+    def _start_controller(self):
+        self._controller = KeyboardController(message_queue=self._queue)
+        # We set the server as a daemon so that it can be killed when the app is closed
+        self._controller.daemon = True
+        self._controller.start()
 
     def _update(self) -> None:
         if not self._queue.empty():
@@ -72,6 +105,44 @@ class App:
             # Display the received image in the camera feed
             self._root.camera_image = camera_image = ImageTk.PhotoImage(data=data, format="jpg")
             self._camera_feed.itemconfig(self._camera_feed_image, image=camera_image)
+        elif message_type is MESSAGE_TYPE.CONTROLLER_FEED_RECEIVED:
+            # Plot the received data in the controller feed
+            self._plot_queue.put(list(data.values()))
+            self._update_controller_plot(list(data.keys()))
+
+            # TODO: Send the controller feed to M.A.R.K. as commands
+
+    def _update_controller_plot(self, keys: List[str]) -> None:
+        data = np.array(self._plot_queue.get())
+
+        self._controller_plot.clear()
+
+        for i, key in enumerate(keys):
+            self._controller_plot.plot(data[:, i], linewidth=2, label=key)
+
+        self._controller_plot.legend(loc="upper left", fontsize=8)
+        self._controller_canvas.draw()
+
+
+class _PlotQueue:
+    """A queue to manage the plot data.
+
+    :param max_size: The maximum number of elements to store in the queue.
+    :type max_size: int
+    """
+
+    def __init__(self, max_size: int) -> None:
+        self._queue = []
+        self._max_size = max_size
+
+    def put(self, data: List[int]) -> None:
+        self._queue.append(data)
+
+        if len(self._queue) > self._max_size:
+            self._queue.pop(0)
+
+    def get(self) -> List[int]:
+        return self._queue
 
 
 if __name__ == "__main__":
