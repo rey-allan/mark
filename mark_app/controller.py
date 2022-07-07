@@ -32,6 +32,8 @@ class KeyboardController(threading.Thread):
             "KEY_O": 0,
             "KEY_P": 0,
         }
+        # Key to its command code
+        self._key_to_command = {key: index + 1 for index, key in enumerate(self._keys.keys())}
 
     def run(self) -> None:
         while True:
@@ -48,3 +50,13 @@ class KeyboardController(threading.Thread):
             except:
                 # Ignore any errors from `inputs` library
                 pass
+
+    def key_to_command(self, key: str) -> int:
+        """Converts a key to its command code.
+
+        :param key: The key to convert.
+        :type key: str
+        :return: The command code.
+        :rtype: int
+        """
+        return self._key_to_command[key]

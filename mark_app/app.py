@@ -109,8 +109,8 @@ class App:
             # Plot the received data in the controller feed
             self._plot_queue.put(list(data.values()))
             self._update_controller_plot(list(data.keys()))
-
-            # TODO: Send the controller feed to M.A.R.K. as commands
+            # Send the controller feed to M.A.R.K. as commands
+            self._send_controller_feed(data)
 
     def _update_controller_plot(self, keys: List[str]) -> None:
         data = np.array(self._plot_queue.get())
@@ -122,6 +122,14 @@ class App:
 
         self._controller_plot.legend(loc="upper left", fontsize=8)
         self._controller_canvas.draw()
+
+    def _send_controller_feed(self, keys: dict[str, int]) -> None:
+        # Only send the commands that are active
+        for key, value in keys.items():
+            if value == 0:
+                continue
+            # We send the command as a byte array of length 1 (e.g. 1 = b"\x01")
+            self._server.send_to_mark(int.to_bytes(self._controller.key_to_command(key), 1, "big"))
 
 
 class _PlotQueue:
