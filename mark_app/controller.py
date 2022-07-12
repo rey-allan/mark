@@ -40,13 +40,19 @@ class KeyboardController(threading.Thread):
             try:
                 events = get_key()
                 for event in events:
+                    if event.code not in self._keys and event.code != "KEY_RESERVED":
+                        continue
+
                     # For some reason, key D = KEY_RESERVED
                     if event.code == "KEY_RESERVED":
                         self._keys["KEY_D"] = event.state
-                    elif event.code in self._keys:
+                    else:
                         self._keys[event.code] = event.state
 
-                    self._message_queue.put((MESSAGE_TYPE.CONTROLLER_FEED_RECEIVED, self._keys))
+                    # Send the message only if the key is pressed
+                    if event.state != 1:
+                        continue
+                    self._message_queue.put((MESSAGE_TYPE.CONTROLLER_FEED_RECEIVED, self._keys.copy()))
             except:
                 # Ignore any errors from `inputs` library
                 pass
