@@ -14,16 +14,19 @@ class Server(threading.Thread):
     :type host: str
     :param port: The port of the server
     :type port: int
-    :param message_queue: The queue to put messages from M.A.R.K.
-    :type message_queue: queue.Queue
+    :param status_queue: The queue to put status messages from M.A.R.K.
+    :type status_queue: queue.Queue
+    :param camera_queue: The queue to put camera feed messages from M.A.R.K.
+    :type camera_queue: queue.Queue
     """
 
-    def __init__(self, host: str, port: int, message_queue: queue.Queue) -> None:
+    def __init__(self, host: str, port: int, status_queue: queue.Queue, camera_queue: queue.Queue) -> None:
         super().__init__()
 
         self._host = host
         self._port = port
-        self._message_queue = message_queue
+        self._status_queue = status_queue
+        self._camera_queue = camera_queue
         self._connection = None
 
     def run(self) -> None:
@@ -39,12 +42,12 @@ class Server(threading.Thread):
             sc, _ = sock.accept()
             logging.info("M.A.R.K. connected from %s:%s", sc.getpeername(), sc.getsockname())
 
-            server_socket = _ServerSocket(sc, self._message_queue)
+            server_socket = _ServerSocket(sc, self._status_queue, self._camera_queue)
             server_socket.start()
             self._connection = server_socket
 
             logging.info("Ready to receive messages from M.A.R.K.")
-            self._message_queue.put((MESSAGE_TYPE.CONNECTED, None))
+            self._status_queue.put((MESSAGE_TYPE.CONNECTED, None))
 
     def send_to_mark(self, data: ByteString) -> None:
         """Sends data to M.A.R.K.
@@ -65,15 +68,18 @@ class _ServerSocket(threading.Thread):
 
     :param sc: The socket connection to M.A.R.K.
     :type sc: socket
-    :param message_queue: The queue to put messages from M.A.R.K.
-    :type message_queue: queue.Queue
+    :param status_queue: The queue to put status messages from M.A.R.K.
+    :type status_queue: queue.Queue
+    :param camera_queue: The queue to put camera feed messages from M.A.R.K.
+    :type camera_queue: queue.Queue
     """
 
-    def __init__(self, sc: socket, message_queue: queue.Queue) -> None:
+    def __init__(self, sc: socket, status_queue: queue.Queue, camera_queue: queue.Queue) -> None:
         super().__init__()
 
         self._sc = sc
-        self._message_queue = message_queue
+        self._status_queue = status_queue
+        self._camera_queue = camera_queue
 
     def run(self) -> None:
         is_image_start = False
@@ -83,7 +89,7 @@ class _ServerSocket(threading.Thread):
             try:
                 bytes = self._sc.recv(2048)
                 if bytes:
-                    logging.info("Received %s bytes from M.A.R.K.", len(bytes))
+                    logging.debug("Received %s bytes from M.A.R.K.", len(bytes))
                     image, is_image_start = self._handle_camera_feed(bytes, image, is_image_start)
                 else:
                     self._mark_disconnected()
@@ -95,7 +101,7 @@ class _ServerSocket(threading.Thread):
     def send_to_mark(self, data: ByteString) -> None:
         try:
             self._sc.sendall(data)
-            logging.info("Sent %s bytes to M.A.R.K.", len(data))
+            logging.debug("Sent %s bytes to M.A.R.K.", len(data))
         except:
             pass
 
@@ -125,7 +131,7 @@ class _ServerSocket(threading.Thread):
                 # We add a 2 to actually include the ending bytes
                 image += bytes[: end_index + 2]
                 # Send the image to the message queue
-                self._message_queue.put((MESSAGE_TYPE.CAMERA_FEED_RECEIVED, image))
+                self._camera_queue.put((MESSAGE_TYPE.CAMERA_FEED_RECEIVED, image))
             else:
                 # Continue reconstructing the image bytes
                 image += bytes
@@ -135,7 +141,7 @@ class _ServerSocket(threading.Thread):
     def _mark_disconnected(self) -> None:
         logging.info("M.A.R.K. disconnected.")
         self._sc.close()
-        self._message_queue.put((MESSAGE_TYPE.DISCONNECTED, None))
+        self._status_queue.put((MESSAGE_TYPE.DISCONNECTED, None))
 
 
 def _find_bytes(bytes: bytearray, to_find: ByteString) -> Optional[int]:
