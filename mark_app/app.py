@@ -7,7 +7,7 @@ import time
 
 # For buttons to render properly in MacOS, we need to import `ttk`
 # See: https://stackoverflow.com/q/59006014
-from tkinter import Canvas, Frame, Label, Tk, messagebox, ttk
+from tkinter import Canvas, Frame, Label, Tk, filedialog, messagebox, ttk
 from typing import Any, List
 
 import numpy as np
@@ -39,6 +39,8 @@ class App:
 
         self._build_camera_feed_panel()
         self._build_controller_feed_panel()
+
+        self._build_recording_frame()
 
         self._start_server()
         self._start_controller()
@@ -79,6 +81,27 @@ class App:
         self._controller_plot = self._controller_figure.add_subplot(111)
         self._controller_canvas = FigureCanvasTkAgg(self._controller_figure, self._feed_frame)
         self._controller_canvas.get_tk_widget().grid(row=1, column=1, padx=50, pady=10)
+
+    def _build_recording_frame(self) -> None:
+        self._recording_frame = Frame(self._root)
+        self._recording_frame.grid(row=2, column=0, sticky="W", padx=50, pady=10)
+
+        def _select_folder():
+            self._recording_dir = filedialog.askdirectory()
+            self._recording_dir_label.config(text=self._recording_dir, font="Roboto 14 bold")
+
+        self._folder_button = ttk.Button(self._recording_frame, text="Select", command=_select_folder)
+        self._folder_button.grid(row=0, column=0)
+
+        # Label for displaying the output directory
+        self._recording_dir_label = Label(
+            self._recording_frame,
+            text="No directory selected",
+            font="Roboto 14 bold",
+            borderwidth=3,
+            relief="ridge",
+        )
+        self._recording_dir_label.grid(row=0, column=1, padx=5)
 
     def _start_server(self) -> None:
         self._server = Server(
