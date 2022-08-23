@@ -58,7 +58,17 @@ class Server(threading.Thread):
         if self._connection is not None:
             self._connection.send_to_mark(data)
 
+    def read_cam_image(self) -> bytearray:
+        """Reads the latest camera image received from M.A.R.K.
+
+        :return: An image as an array of bytes
+        :rtype: bytearray
+        """
+        if self._connection is not None:
+            return self._connection.cam_image
+
     def close(self) -> None:
+        """Closes the connection to M.A.R.K."""
         if self._connection is not None:
             self._connection.close()
 
@@ -77,6 +87,7 @@ class _ServerSocket(threading.Thread):
     def __init__(self, sc: socket, status_queue: queue.Queue, camera_queue: queue.Queue) -> None:
         super().__init__()
 
+        self.cam_image = None
         self._sc = sc
         self._status_queue = status_queue
         self._camera_queue = camera_queue
@@ -132,6 +143,8 @@ class _ServerSocket(threading.Thread):
                 image += bytes[: end_index + 2]
                 # Send the image to the message queue
                 self._camera_queue.put((MESSAGE_TYPE.CAMERA_FEED_RECEIVED, image))
+                # Only save the latest complete image
+                self.cam_image = image
             else:
                 # Continue reconstructing the image bytes
                 image += bytes

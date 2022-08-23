@@ -1,6 +1,7 @@
 """Defines the interface for a keyboard controller."""
 import queue
 import threading
+from typing import Dict, List
 
 from inputs import get_key
 
@@ -56,6 +57,22 @@ class KeyboardController(threading.Thread):
             except:
                 # Ignore any errors from `inputs` library
                 pass
+
+    def keys(self) -> List[str]:
+        """Returns the supported keys
+
+        :return: A list with the supported keys
+        :rtype: List[str]
+        """
+        return list(self._keys.keys())
+
+    def read(self) -> Dict[str, int]:
+        """Reads the latest controller keys and values
+
+        :return: A dictionary of controller key to value (0 or 1)
+        :rtype: Dict
+        """
+        return self._keys.copy()
 
     def key_to_command(self, key: str) -> int:
         """Converts a key to its command code.

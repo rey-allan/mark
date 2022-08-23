@@ -17,6 +17,7 @@ from PIL import ImageTk
 
 from common import MESSAGE_TYPE
 from controller import KeyboardController
+from recorder import Recorder
 from server import Server
 
 
@@ -40,12 +41,15 @@ class App:
         self._build_camera_feed_panel()
         self._build_controller_feed_panel()
 
+        self._is_recording = False
+        self._recording_dir = None
         self._build_recording_frame()
 
         self._start_server()
         self._start_controller()
         self._start_camera_handler()
         self._start_controller_handler()
+        self._start_recorder()
 
         # Update the UI based on status events from M.A.R.K.
         self._update_status()
@@ -86,6 +90,10 @@ class App:
         self._recording_frame = Frame(self._root)
         self._recording_frame.grid(row=2, column=0, sticky="W", padx=50, pady=10)
 
+        self._build_recording_directory_button()
+        self._build_start_stop_recording_button()
+
+    def _build_recording_directory_button(self) -> None:
         def _select_folder():
             self._recording_dir = filedialog.askdirectory()
             self._recording_dir_label.config(text=self._recording_dir, font="Roboto 14 bold")
@@ -97,11 +105,38 @@ class App:
         self._recording_dir_label = Label(
             self._recording_frame,
             text="No directory selected",
+            width=39,
             font="Roboto 14 bold",
             borderwidth=3,
             relief="ridge",
         )
-        self._recording_dir_label.grid(row=0, column=1, padx=5)
+        self._recording_dir_label.grid(row=0, column=1, padx=8)
+
+    def _build_start_stop_recording_button(self) -> None:
+        self._record_button = ttk.Button(self._recording_frame, text="Record", command=self._start_stop_recording)
+        self._record_button.grid(row=0, column=2, padx=96)
+
+    def _start_stop_recording(self) -> None:
+        if not self._is_recording and self._recording_dir is None:
+            messagebox.showerror("Error", "Please select a directory to save recording to.")
+            return
+
+        if not self._is_recording:
+            self._record_button.config(text="Stop")
+            self._is_recording = True
+            self._start_recording()
+        else:
+            self._record_button.config(text="Record")
+            self._is_recording = False
+            self._stop_recording()
+
+    def _start_recording(self) -> None:
+        logging.info(f"Starting recording of camera images and controller values, saving to {self._recording_dir}")
+        self._recorder.start_recording(self._recording_dir)
+
+    def _stop_recording(self) -> None:
+        logging.info("Stopping recording of camera images and controller values")
+        self._recorder.stop_recording()
 
     def _start_server(self) -> None:
         self._server = Server(
@@ -142,6 +177,13 @@ class App:
         # We set the handler as a daemon so that it can be killed when the app is closed
         self._controller_handler.daemon = True
         self._controller_handler.start()
+
+    def _start_recorder(self) -> None:
+        # Sample data every 200 ms
+        self._recorder = Recorder(self._server, self._controller, sample_rate_ms=200)
+        # We set the handler as a daemon so that it can be killed when the app is closed
+        self._recorder.daemon = True
+        self._recorder.start()
 
     def _update_status(self) -> None:
         if not self._status_queue.empty():
