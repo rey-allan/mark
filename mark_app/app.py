@@ -7,7 +7,7 @@ import time
 
 # For buttons to render properly in MacOS, we need to import `ttk`
 # See: https://stackoverflow.com/q/59006014
-from tkinter import Canvas, Frame, Label, Tk, filedialog, messagebox, ttk
+from tkinter import Canvas, Frame, Label, Tk, Toplevel, filedialog, messagebox, ttk
 from typing import Any, List
 
 import numpy as np
@@ -44,6 +44,8 @@ class App:
         self._is_recording = False
         self._recording_dir = None
         self._build_recording_frame()
+
+        self._build_qr_code_button()
 
         self._start_server()
         self._start_controller()
@@ -137,6 +139,22 @@ class App:
     def _stop_recording(self) -> None:
         logging.info("Stopping recording of camera images and controller values")
         self._recorder.stop_recording()
+
+    def _build_qr_code_button(self) -> None:
+        self._root.qr_code_image = qr_code_image = ImageTk.PhotoImage(file="img/wifi.png")
+
+        def _show_qr_code():
+            # `Toplevel` is used to display this as a modal window
+            top = Toplevel()
+            top.title("WiFi QR Code")
+            Label(top, image=qr_code_image).pack()
+
+        self._show_qr_code_button = ttk.Button(
+            self._recording_frame,
+            text="WiFi QR Code",
+            command=_show_qr_code,
+        )
+        self._show_qr_code_button.grid(row=0, column=3)
 
     def _start_server(self) -> None:
         self._server = Server(
