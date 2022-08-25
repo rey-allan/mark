@@ -10,8 +10,6 @@ from common import MESSAGE_TYPE
 class Server(threading.Thread):
     """A server that listens for messages from M.A.R.K.
 
-    :param host: The hostname of the server
-    :type host: str
     :param port: The port of the server
     :type port: int
     :param status_queue: The queue to put status messages from M.A.R.K.
@@ -20,10 +18,12 @@ class Server(threading.Thread):
     :type camera_queue: queue.Queue
     """
 
-    def __init__(self, host: str, port: int, status_queue: queue.Queue, camera_queue: queue.Queue) -> None:
+    def __init__(self, port: int, status_queue: queue.Queue, camera_queue: queue.Queue) -> None:
         super().__init__()
 
-        self._host = host
+        # Automatically discover the IP address of the host
+        # Taken from: https://www.delftstack.com/howto/python/get-ip-address-python/
+        self._host = socket.gethostbyname(socket.gethostname())
         self._port = port
         self._status_queue = status_queue
         self._camera_queue = camera_queue

@@ -157,12 +157,7 @@ class App:
         self._show_qr_code_button.grid(row=0, column=3)
 
     def _start_server(self) -> None:
-        self._server = Server(
-            host="localhost",
-            port=1060,
-            status_queue=self._status_queue,
-            camera_queue=self._camera_queue,
-        )
+        self._server = Server(port=1060, status_queue=self._status_queue, camera_queue=self._camera_queue)
         # We set the server as a daemon so that it can be killed when the app is closed
         self._server.daemon = True
         self._server.start()

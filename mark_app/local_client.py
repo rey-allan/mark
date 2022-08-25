@@ -30,7 +30,7 @@ class Client(threading.Thread):
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                self._sock.connect(("localhost", 1060))
+                self._sock.connect((socket.gethostbyname(socket.gethostname()), 1060))
                 logging.info("Connected to server!")
                 break
             except:
