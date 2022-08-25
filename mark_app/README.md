@@ -21,3 +21,9 @@ To provide the WiFi information of the server to M.A.R.K., we encode it as a QR 
 ```
 qrencode -o wifi.png -s 10 '{"ssid":"[WIFI_NAME]","password":"[WIFI_PASSWORD]","host":"[SERVER_IP]","port":1060}'
 ```
+
+To find the server IP address, run the following:
+
+```
+python -c "import socket; print(socket.gethostbyname(socket.gethostname()))"
+```
