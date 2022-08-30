@@ -110,6 +110,8 @@ class _CommandSocket(threading.Thread):
                 os._exit(0)
 
     def _handle_command(self, command: ByteString) -> None:
+        if command == b"\x00":
+            logging.info("KeepAlive")
         if command == b"\x01":
             logging.info("Move forward")
         if command == b"\x02":
