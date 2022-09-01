@@ -1,4 +1,5 @@
 """Main app for controlling M.A.R.K. and recording data."""
+import io
 import logging
 import queue
 import sys
@@ -13,12 +14,14 @@ from typing import Any, List
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from PIL import ImageTk
+from PIL import Image, ImageTk
 
 from common import MESSAGE_TYPE
 from controller import KeyboardController
 from recorder import Recorder
 from server import Server
+
+PANEL_SIZE = (500, 450)
 
 
 class App:
@@ -73,7 +76,7 @@ class App:
     def _build_camera_feed_panel(self) -> None:
         self._camera_label = Label(self._feed_frame, text="Camera Feed", font="Roboto 14 bold")
         self._camera_label.grid(row=0, column=0)
-        self._camera_feed = Canvas(self._feed_frame, width=500, height=450)
+        self._camera_feed = Canvas(self._feed_frame, width=PANEL_SIZE[0], height=PANEL_SIZE[1])
         self._camera_feed.grid(row=1, column=0, padx=50, pady=10)
         # Initialize with a placeholder image while we wait to receive images from M.A.R.K.
         # We need to do this double assignment to prevent the image to be garbage collected
@@ -85,7 +88,7 @@ class App:
         self._controller_label = Label(self._feed_frame, text="Controller Feed", font="Roboto 14 bold")
         self._controller_label.grid(row=0, column=1)
         # 500 x 450 (width x height) same as the camera feed
-        self._controller_figure = Figure(figsize=(5, 4.5), dpi=100)
+        self._controller_figure = Figure(figsize=(PANEL_SIZE[0] / 100.0, PANEL_SIZE[1] / 100.0), dpi=100)
         self._controller_plot = self._controller_figure.add_subplot(111)
         self._controller_canvas = FigureCanvasTkAgg(self._controller_figure, self._feed_frame)
         self._controller_canvas.get_tk_widget().grid(row=1, column=1, padx=50, pady=10)
@@ -256,8 +259,10 @@ class _CameraHandler(threading.Thread):
     def _handle_message(self, message_type: str, data: Any) -> None:
         if message_type is MESSAGE_TYPE.CAMERA_FEED_RECEIVED:
             try:
+                # Resize image to fit our canvas
+                img = Image.open(io.BytesIO(data)).resize(PANEL_SIZE)
                 # Display the received image in the camera feed
-                self._root.camera_image = camera_image = ImageTk.PhotoImage(data=data, format="jpg")
+                self._root.camera_image = camera_image = ImageTk.PhotoImage(img)
                 self._camera_feed.itemconfig(self._camera_feed_image, image=camera_image)
             except:
                 # Ignore any corrupted images
