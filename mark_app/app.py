@@ -213,8 +213,6 @@ class App:
             self._status_label.config(text="Online", fg="green", font="Roboto 14 bold")
         elif message_type is MESSAGE_TYPE.DISCONNECTED:
             self._status_label.config(text="Offline", fg="red", font="Roboto 14 bold")
-            # Reset camera feed to the placeholder
-            self._camera_feed.itemconfig(self._camera_feed_image, image=self._root.placeholder_image)
         else:
             raise ValueError(f"Unknown status message type: {message_type}")
 
@@ -257,9 +255,13 @@ class _CameraHandler(threading.Thread):
 
     def _handle_message(self, message_type: str, data: Any) -> None:
         if message_type is MESSAGE_TYPE.CAMERA_FEED_RECEIVED:
-            # Display the received image in the camera feed
-            self._root.camera_image = camera_image = ImageTk.PhotoImage(data=data, format="jpg")
-            self._camera_feed.itemconfig(self._camera_feed_image, image=camera_image)
+            try:
+                # Display the received image in the camera feed
+                self._root.camera_image = camera_image = ImageTk.PhotoImage(data=data, format="jpg")
+                self._camera_feed.itemconfig(self._camera_feed_image, image=camera_image)
+            except:
+                # Ignore any corrupted images
+                pass
         else:
             raise ValueError(f"Unknown camera message type: {message_type}")
 
