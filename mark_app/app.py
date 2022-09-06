@@ -58,8 +58,6 @@ class App:
 
         # Update the UI based on status events from M.A.R.K.
         self._update_status()
-        # Send a keepalive message to M.A.R.K.
-        self._keep_alive()
 
     def close(self) -> None:
         self._server.close()
@@ -218,11 +216,6 @@ class App:
             self._status_label.config(text="Offline", fg="red", font="Roboto 14 bold")
         else:
             raise ValueError(f"Unknown status message type: {message_type}")
-
-    def _keep_alive(self) -> None:
-        # Send a keepalive message to M.A.R.K. every 50ms
-        self._server.send_to_mark(int.to_bytes(0, 1, "big"))
-        self._root.after(50, self._keep_alive)
 
 
 class _CameraHandler(threading.Thread):

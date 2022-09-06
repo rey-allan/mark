@@ -111,7 +111,7 @@ class _ServerSocket(threading.Thread):
 
     def send_to_mark(self, data: ByteString) -> None:
         try:
-            self._sc.sendall(data)
+            self._sc.send(data)
             logging.debug("Sent %s bytes to M.A.R.K.", len(data))
         except:
             pass
