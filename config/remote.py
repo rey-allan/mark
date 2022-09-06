@@ -30,8 +30,7 @@ server_port = 3456
 # Camera angles
 pan_angle = 90
 tilt_angle = 90
-# The wheel that supports the back of the robot
-caster_wheel = 90
+gripper_angle = 90
 
 
 def _init():
@@ -114,32 +113,42 @@ def _connect_to_wifi():
 def _handle_message(data):
     global pan_angle
     global tilt_angle
-    global caster_wheel
+    global gripper_angle
 
-    if data == b"\x00":
-        # Keepalive message sent by the app
+    if data == b"":
+        # No command, stop any movement
+        Maix_motor.motor_run(0, 0, 0)
         return
     elif data == b"\x01":
+        # Forward
         Maix_motor.motor_motion(2, 1, 0)
     elif data == b"\x02":
-        Maix_motor.motor_motion(1, 3, 0)
-    elif data == b"\x03":
+        # Left
         Maix_motor.motor_motion(1, 4, 0)
-    elif data == b"\x04":
+    elif data == b"\x03":
+        # Backward
         Maix_motor.motor_motion(2, 2, 0)
+    elif data == b"\x04":
+        # Right
+        Maix_motor.motor_motion(1, 3, 0)
     elif data == b"\x05":
-        Maix_motor.motor_run(0, 0, 0)
-        caster_wheel = 90
-    elif data == b"\x08":
-        pan_angle = pan_angle + 2
-    elif data == b"\x09":
-        pan_angle = pan_angle - 2
-    elif data == b"\x07":
-        tilt_angle = tilt_angle + 2
+        # Camera up
+        tilt_angle = tilt_angle + 5
     elif data == b"\x06":
-        tilt_angle = tilt_angle - 2
-    elif data == b"\x0b":
-        caster_wheel = 40
+        # Camera down
+        tilt_angle = tilt_angle - 5
+    elif data == b"\x07":
+        # Camera left
+        pan_angle = pan_angle + 5
+    elif data == b"\x08":
+        # Camera right
+        pan_angle = pan_angle - 5
+    elif data == b"\t":
+        # Open gripper
+        gripper_angle = gripper_angle + 5
+    elif data == b"\n":
+        # Close gripper
+        gripper_angle = gripper_angle - 5
     else:
         # Unrecognized command, no-op
         return
@@ -149,10 +158,12 @@ def _handle_message(data):
     pan_angle = max(pan_angle, 0)
     tilt_angle = min(tilt_angle, 180)
     tilt_angle = max(tilt_angle, 0)
+    gripper_angle = min(gripper_angle, 180)
+    gripper_angle = max(gripper_angle, 0)
 
     Maix_motor.servo_angle(1, pan_angle)
     Maix_motor.servo_angle(2, tilt_angle)
-    Maix_motor.servo_angle(3, caster_wheel)
+    Maix_motor.servo_angle(3, gripper_angle)
 
 
 def _send_buffer(sock, data, buf_size):
