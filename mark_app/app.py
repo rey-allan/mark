@@ -44,11 +44,16 @@ class App:
         self._build_camera_feed_panel()
         self._build_controller_feed_panel()
 
+        self._recording_qr_reset_frame = Frame(self._root)
+        self._recording_qr_reset_frame.grid(row=2, column=0, sticky="W", padx=50, pady=10)
+
         self._is_recording = False
         self._recording_dir = None
         self._build_recording_frame()
 
         self._build_qr_code_button()
+
+        self._build_reset_button()
 
         self._start_server()
         self._start_controller()
@@ -92,9 +97,6 @@ class App:
         self._controller_canvas.get_tk_widget().grid(row=1, column=1, padx=50, pady=10)
 
     def _build_recording_frame(self) -> None:
-        self._recording_frame = Frame(self._root)
-        self._recording_frame.grid(row=2, column=0, sticky="W", padx=50, pady=10)
-
         self._build_recording_directory_button()
         self._build_start_stop_recording_button()
 
@@ -103,12 +105,12 @@ class App:
             self._recording_dir = filedialog.askdirectory()
             self._recording_dir_label.config(text=self._recording_dir, font="Roboto 14 bold")
 
-        self._folder_button = ttk.Button(self._recording_frame, text="Select", command=_select_folder)
+        self._folder_button = ttk.Button(self._recording_qr_reset_frame, text="Select", command=_select_folder)
         self._folder_button.grid(row=0, column=0)
 
         # Label for displaying the output directory
         self._recording_dir_label = Label(
-            self._recording_frame,
+            self._recording_qr_reset_frame,
             text="No directory selected",
             width=39,
             font="Roboto 14 bold",
@@ -118,7 +120,11 @@ class App:
         self._recording_dir_label.grid(row=0, column=1, padx=8)
 
     def _build_start_stop_recording_button(self) -> None:
-        self._record_button = ttk.Button(self._recording_frame, text="Record", command=self._start_stop_recording)
+        self._record_button = ttk.Button(
+            self._recording_qr_reset_frame,
+            text="Record",
+            command=self._start_stop_recording,
+        )
         self._record_button.grid(row=0, column=2, padx=96)
 
     def _start_stop_recording(self) -> None:
@@ -153,11 +159,21 @@ class App:
             Label(top, image=qr_code_image).pack()
 
         self._show_qr_code_button = ttk.Button(
-            self._recording_frame,
+            self._recording_qr_reset_frame,
             text="WiFi QR Code",
             command=_show_qr_code,
         )
         self._show_qr_code_button.grid(row=0, column=3)
+
+    def _build_reset_button(self) -> None:
+        def _reset():
+            # Reset camera feed to the placeholder
+            self._camera_feed.itemconfig(self._camera_feed_image, image=self._root.placeholder_image)
+            # Close the connection to M.A.R.K.
+            self._server.close()
+
+        self._reset_button = ttk.Button(self._recording_qr_reset_frame, text="Reset", command=_reset)
+        self._reset_button.grid(row=0, column=4, padx=88)
 
     def _start_server(self) -> None:
         self._server = Server(port=1060, status_queue=self._status_queue, camera_queue=self._camera_queue)
