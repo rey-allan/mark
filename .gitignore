@@ -12,3 +12,4 @@ mark_unity/[Uu]ser[Ss]ettings/
 mark_unity/**/*.csproj
 mark_unity/**/*.sln
 mark_app/__pycache__/
+mark_app/img/wifi.png
