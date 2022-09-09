@@ -102,4 +102,6 @@ If the robot completely disconnects, e.g. if you turn it off, the app will appea
 
 The following diagram shows the overall architecture of the app, and how information flows between the different components and the robot.
 
-![](docs/app_diagram.png)
+<p align="center">
+  <img src="docs/app_diagram.png" width="80%" />
+</p>
